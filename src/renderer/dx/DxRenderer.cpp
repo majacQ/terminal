@@ -75,7 +75,7 @@ DxEngine::DxEngine() :
     _presentParams{ 0 },
     _presentReady{ false },
     _presentScroll{ 0 },
-    _presentDirty{ {0, 0, 120, 30} },
+    _presentDirty{ { 0, 0, 120, 30 } },
     _presentOffset{ 0 },
     _isEnabled{ false },
     _isPainting{ false },
@@ -1258,7 +1258,7 @@ try
     {
         RETURN_IF_FAILED(InvalidateAll());
     }
-    
+
     if (_isEnabled)
     {
         const auto clientSize = _GetClientSize();
@@ -1293,7 +1293,7 @@ try
             // And persist the new size.
             _displaySizePixels = clientSize;
         }
-        
+
         _d2dDeviceContext->BeginDraw();
         _isPainting = true;
 
@@ -1355,7 +1355,7 @@ try
                 const auto scrollPixels = (_invalidScroll * _fontRenderData->GlyphCell());
 
                 // The scroll rect is the entire field of cells, but in pixels.
-                til::rect scrollArea{ til::size{120, 30} * _fontRenderData->GlyphCell() };
+                til::rect scrollArea{ til::size{ 120, 30 } * _fontRenderData->GlyphCell() };
 
                 // Reduce the size of the rectangle by the scroll.
                 scrollArea.left = std::clamp(scrollArea.left + scrollPixels.x, scrollArea.left, scrollArea.right);
@@ -1398,7 +1398,7 @@ try
             _ReleaseDeviceResources();
         }
     }
-    
+
     _allInvalid = false;
 
     _invalidScroll = {};
@@ -1594,7 +1594,7 @@ try
     }
 
     // If the entire thing is invalid, just use one big clear operation.
-        _d2dDeviceContext->Clear(nothing);
+    _d2dDeviceContext->Clear(nothing);
 
     return S_OK;
 }

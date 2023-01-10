@@ -704,7 +704,7 @@ void AtlasEngine::_createResources()
             THROW_IF_FAILED(_r.device->CreateBlendState1(&desc, _r.invertCursorBlendState.put()));
         }
 
-        if constexpr (true)
+        if constexpr (debugNvidiaQuadFill)
         {
             // Quick hack to test NVAPI_QUAD_FILLMODE_BBOX if needed.
             struct NvAPI_D3D11_RASTERIZER_DESC_EX : D3D11_RASTERIZER_DESC
@@ -1284,8 +1284,6 @@ void AtlasEngine::_flushBufferLine()
     TextAnalysisSink analysisSink{ _api.analysisResults };
 
     wil::com_ptr<IDWriteFontFace> mappedFontFace;
-
-    static constexpr auto debugProportionalText = true;
 
 #pragma warning(suppress : 26494) // Variable 'mappedEnd' is uninitialized. Always initialize an object (type.5).
     for (u32 idx = 0, mappedEnd; idx < _api.bufferLine.size(); idx = mappedEnd)

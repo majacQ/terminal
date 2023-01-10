@@ -643,6 +643,8 @@ namespace Microsoft::Console::Render
         bool _drawGlyphRun(D2D_POINT_2F baselineOrigin, const DWRITE_GLYPH_RUN* glyphRun, ID2D1SolidColorBrush* foregroundBrush) const noexcept;
         void _drawGlyph(GlyphCacheEntry& entry, f32 fontEmSize);
 
+        static constexpr bool debugNvidiaQuadFill = false;
+        static constexpr bool debugProportionalText = false;
         static constexpr bool debugForceD2DMode = false;
         static constexpr bool debugGlyphGenerationPerformance = false;
         static constexpr bool debugTextParsingPerformance = false || debugGlyphGenerationPerformance;
@@ -692,7 +694,7 @@ namespace Microsoft::Console::Render
             wil::com_ptr<ID3D11BlendState1> cleartypeBlendState;
             wil::com_ptr<ID3D11BlendState1> alphaBlendState;
             wil::com_ptr<ID3D11BlendState1> invertCursorBlendState;
-            
+
             wil::com_ptr<ID3D11RasterizerState> rasterizerState;
             wil::com_ptr<ID3D11PixelShader> textPixelShader;
             wil::com_ptr<ID3D11BlendState> textBlendState;
