@@ -303,37 +303,37 @@ til::CoordType RetrieveNumberOfSpaces(_In_ til::CoordType sOriginalCursorPositio
     auto pendingBytes = pending.size() * sizeof(wchar_t);
     auto Tmp = pending.cbegin();
 
+    if (!unicode)
+    {
+        if (inputBuffer.IsReadPartialByteSequenceAvailable())
+        {
+            auto event = inputBuffer.FetchReadPartialByteSequence(false);
+            const auto pKeyEvent = static_cast<const KeyEvent* const>(event.get());
+            *pBuffer = static_cast<char>(pKeyEvent->GetCharData());
+            ++pBuffer;
+            bufferRemaining -= sizeof(wchar_t);
+            pendingBytes -= sizeof(wchar_t);
+            fAddDbcsLead = TRUE;
+        }
+        if (pendingBytes == 0 || bufferRemaining == 0)
+        {
+            readHandleState.CompletePending();
+            bytesRead = 1;
+            return STATUS_SUCCESS;
+        }
+    }
+
     if (readHandleState.IsMultilineInput())
     {
         if (!unicode)
         {
-            if (inputBuffer.IsReadPartialByteSequenceAvailable())
+            for (NumToWrite = 0, Tmp = pending.cbegin(), NumToBytes = 0;
+                    NumToBytes < pendingBytes &&
+                    NumToBytes < bufferRemaining / sizeof(wchar_t) &&
+                    *Tmp != UNICODE_LINEFEED;
+                    Tmp++, NumToWrite += sizeof(wchar_t))
             {
-                auto event = inputBuffer.FetchReadPartialByteSequence(false);
-                const auto pKeyEvent = static_cast<const KeyEvent* const>(event.get());
-                *pBuffer = static_cast<char>(pKeyEvent->GetCharData());
-                ++pBuffer;
-                bufferRemaining -= sizeof(wchar_t);
-                pendingBytes -= sizeof(wchar_t);
-                fAddDbcsLead = TRUE;
-            }
-
-            if (pendingBytes == 0 || bufferRemaining == 0)
-            {
-                readHandleState.CompletePending();
-                bytesRead = 1;
-                return STATUS_SUCCESS;
-            }
-            else
-            {
-                for (NumToWrite = 0, Tmp = pending.cbegin(), NumToBytes = 0;
-                     NumToBytes < pendingBytes &&
-                     NumToBytes < bufferRemaining / sizeof(wchar_t) &&
-                     *Tmp != UNICODE_LINEFEED;
-                     Tmp++, NumToWrite += sizeof(wchar_t))
-                {
-                    NumToBytes += IsGlyphFullWidth(*Tmp) ? 2 : 1;
-                }
+                NumToBytes += IsGlyphFullWidth(*Tmp) ? 2 : 1;
             }
         }
 
@@ -356,31 +356,11 @@ til::CoordType RetrieveNumberOfSpaces(_In_ til::CoordType sOriginalCursorPositio
     {
         if (!unicode)
         {
-            if (inputBuffer.IsReadPartialByteSequenceAvailable())
+            for (NumToWrite = 0, Tmp = pending.cbegin(), NumToBytes = 0;
+                    NumToBytes < pendingBytes && NumToBytes < bufferRemaining / sizeof(wchar_t);
+                    Tmp++, NumToWrite += sizeof(wchar_t))
             {
-                auto event = inputBuffer.FetchReadPartialByteSequence(false);
-                const auto pKeyEvent = static_cast<const KeyEvent* const>(event.get());
-                *pBuffer = static_cast<char>(pKeyEvent->GetCharData());
-                ++pBuffer;
-                bufferRemaining -= sizeof(wchar_t);
-                pendingBytes -= sizeof(wchar_t);
-                fAddDbcsLead = TRUE;
-            }
-
-            if (pendingBytes == 0)
-            {
-                readHandleState.CompletePending();
-                bytesRead = 1;
-                return STATUS_SUCCESS;
-            }
-            else
-            {
-                for (NumToWrite = 0, Tmp = pending.cbegin(), NumToBytes = 0;
-                     NumToBytes < pendingBytes && NumToBytes < bufferRemaining / sizeof(wchar_t);
-                     Tmp++, NumToWrite += sizeof(wchar_t))
-                {
-                    NumToBytes += IsGlyphFullWidth(*Tmp) ? 2 : 1;
-                }
+                NumToBytes += IsGlyphFullWidth(*Tmp) ? 2 : 1;
             }
         }
 
