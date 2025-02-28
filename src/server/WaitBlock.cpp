@@ -135,7 +135,7 @@ bool ConsoleWaitBlock::Notify(const WaitTerminationReason TerminationReason)
     DWORD dwControlKeyState;
     auto fIsUnicode = true;
 
-    std::deque<std::unique_ptr<IInputEvent>> outEvents;
+    InputEventQueue outEvents;
     // TODO: MSFT 14104228 - get rid of this void* and get the data
     // out of the read wait object properly.
     void* pOutputData = nullptr;
@@ -193,15 +193,7 @@ bool ConsoleWaitBlock::Notify(const WaitTerminationReason TerminationReason)
 
             const auto pRecordBuffer = static_cast<INPUT_RECORD* const>(buffer);
             a->NumRecords = static_cast<ULONG>(outEvents.size());
-            for (size_t i = 0; i < a->NumRecords; ++i)
-            {
-                if (outEvents.empty())
-                {
-                    break;
-                }
-                pRecordBuffer[i] = outEvents.front()->ToInputRecord();
-                outEvents.pop_front();
-            }
+            std::ranges::copy(outEvents, pRecordBuffer);
         }
         else if (API_NUMBER_READCONSOLE == _WaitReplyMessage.msgHeader.ApiNumber)
         {
@@ -231,9 +223,11 @@ bool ConsoleWaitBlock::Notify(const WaitTerminationReason TerminationReason)
             a->NumBytes = gsl::narrow<ULONG>(NumBytes);
         }
 
-        LOG_IF_FAILED(_WaitReplyMessage.ReleaseMessageBuffers());
+        _WaitReplyMessage.ReleaseMessageBuffers();
 
-        LOG_IF_FAILED(Microsoft::Console::Interactivity::ServiceLocator::LocateGlobals().pDeviceComm->CompleteIo(&_WaitReplyMessage.Complete));
+        // This call fails when the server pipe is closed on us,
+        // which results in log spam in practice.
+        std::ignore = Microsoft::Console::Interactivity::ServiceLocator::LocateGlobals().pDeviceComm->CompleteIo(&_WaitReplyMessage.Complete);
 
         fRetVal = true;
     }
